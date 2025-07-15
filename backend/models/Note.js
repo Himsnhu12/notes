@@ -5,7 +5,7 @@ const noteSchema = new mongoose.Schema({
   content: String,
   updatedAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now ,
   },
 });
 
