@@ -23,7 +23,7 @@ export default function CreateNote() {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
-      <button onClick={createNote}>Create</button>
+      <button onClick={createNote}>Create Note</button>
     </div>
   );
 }
