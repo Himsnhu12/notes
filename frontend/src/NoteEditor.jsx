@@ -15,13 +15,13 @@ export default function NoteEditor() {
 
   useEffect(() => {
     const fetchNote = async () => {
-      const res = await axios.get(`https://notes-o5f3.vercel.app/${id}`);
+      const res = await axios.get(`https://notes-rdby.onrender.com/${id}`);
       setNote(res.data);
     };
 
     fetchNote();
 
-    const socket = io("https://notes-o5f3.vercel.app/");
+    const socket = io("https://notes-rdby.onrender.com/");
     socketRef.current = socket;
 
     socket.emit("join_note", id);
@@ -47,7 +47,7 @@ export default function NoteEditor() {
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       axios
-        .put(`https://notes-o5f3.vercel.app/${id}`, { content })
+        .put(`https://notes-rdby.onrender.com/${id}`, { content })
         .then(() => setSaveStatus("Saved"))
         .catch(() => setSaveStatus("Error saving"));
     }, 4000); 
