@@ -3,7 +3,7 @@ import CreateNote from "./CreateNote";
 import NoteEditor from "./NoteEditor";
 
 function App() {
-  return (
+  return ( 
     <Router>
       <Routes>
         <Route path="/" element={<CreateNote />} />
