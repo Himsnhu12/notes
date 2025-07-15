@@ -15,8 +15,13 @@ export default function NoteEditor() {
 
   useEffect(() => {
     const fetchNote = async () => {
-      const res = await axios.get(`https://notes-rdby.onrender.com/${id}`);
-      setNote(res.data);
+      try {
+        const res = await axios.get(`https://notes-rdby.onrender.com/notes/${id}`);
+        setNote(res.data);
+      } catch (err) {
+        console.error("Failed to fetch note:", err);
+        setSaveStatus("Error loading note");
+      }
     };
 
     fetchNote();
@@ -47,15 +52,18 @@ export default function NoteEditor() {
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       axios
-        .put(`https://notes-rdby.onrender.com/${id}`, { content })
+        .put(`https://notes-rdby.onrender.com/notes/${id}`, { content })
         .then(() => setSaveStatus("Saved"))
-        .catch(() => setSaveStatus("Error saving"));
-    }, 4000); 
+        .catch((err) => {
+          console.error("Save error:", err);
+          setSaveStatus("Error saving");
+        });
+    }, 4000);
   };
 
   return (
     <div style={{ padding: "1rem", maxWidth: "800px", margin: "auto" }}>
-      <h2>{note.title}</h2>
+      <h2>{note.title || "Untitled Note"}</h2>
       <p>Active Users: {users}</p>
       <TextareaAutosize
         value={note.content}
@@ -63,7 +71,15 @@ export default function NoteEditor() {
         minRows={10}
         style={{ width: "100%", fontSize: "1rem", padding: "0.5rem" }}
       />
-      <p style={{ marginTop: "0.5rem", fontStyle: "italic" }}>{saveStatus}</p>
+      <p
+        style={{
+          marginTop: "0.5rem",
+          fontStyle: "italic",
+          color: saveStatus === "Error saving" ? "red" : "black",
+        }}
+      >
+        {saveStatus}
+      </p>
     </div>
   );
 }
