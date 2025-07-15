@@ -7,7 +7,7 @@ export default function CreateNote() {
   const navigate = useNavigate();
 
   const createNote = async () => {
-    const res = await axios.post("https://notes-o5f3.vercel.app/notes", {
+    const res = await axios.post("https://notes-rdby.onrender.com/notes", {
       title,
       content: "",
     });
