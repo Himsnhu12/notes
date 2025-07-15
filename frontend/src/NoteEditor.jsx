@@ -1,0 +1,69 @@
+import { useEffect, useState, useRef } from "react";
+import { useParams } from "react-router-dom";
+import { io } from "socket.io-client";
+import axios from "axios";
+import TextareaAutosize from "react-textarea-autosize";
+
+export default function NoteEditor() {
+  const { id } = useParams();
+  const [note, setNote] = useState({ title: "", content: "" });
+  const [users, setUsers] = useState(0);
+  const [saveStatus, setSaveStatus] = useState("Saved");
+
+  const socketRef = useRef(null);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    const fetchNote = async () => {
+      const res = await axios.get(`http://localhost:5000/notes/${id}`);
+      setNote(res.data);
+    };
+
+    fetchNote();
+
+    const socket = io("http://localhost:5000");
+    socketRef.current = socket;
+
+    socket.emit("join_note", id);
+
+    socket.on("note_update", (content) => {
+      setNote((prev) => ({ ...prev, content }));
+    });
+
+    socket.on("active_users", (count) => setUsers(count));
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [id]);
+
+  const handleChange = (e) => {
+    const content = e.target.value;
+    setNote((prev) => ({ ...prev, content }));
+    setSaveStatus("Saving...");
+
+    socketRef.current?.emit("note_update", { noteId: id, content });
+
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      axios
+        .put(`http://localhost:5000/notes/${id}`, { content })
+        .then(() => setSaveStatus("Saved"))
+        .catch(() => setSaveStatus("Error saving"));
+    }, 4000); 
+  };
+
+  return (
+    <div style={{ padding: "1rem", maxWidth: "800px", margin: "auto" }}>
+      <h2>{note.title}</h2>
+      <p>Active Users: {users}</p>
+      <TextareaAutosize
+        value={note.content}
+        onChange={handleChange}
+        minRows={10}
+        style={{ width: "100%", fontSize: "1rem", padding: "0.5rem" }}
+      />
+      <p style={{ marginTop: "0.5rem", fontStyle: "italic" }}>{saveStatus}</p>
+    </div>
+  );
+}
