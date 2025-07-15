@@ -9,28 +9,44 @@ const noteRoutes = require("./routes/noteRoutes");
 const app = express();
 const server = http.createServer(app);
 
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
-});
+//  Allow only your frontend domain
+const FRONTEND_URL = "https://notes-mu-hazel.vercel.app";
 
+//  Express CORS for HTTP routes
+app.use(cors({
+  origin: FRONTEND_URL,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+}));
+
+app.use(express.json());
+app.use("/notes", noteRoutes);
+
+//  MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
-app.use(cors());
-app.use(express.json());
-app.use("/notes", noteRoutes);
+//  Socket.IO setup with CORS
+const io = new Server(server, {
+  cors: {
+    origin: FRONTEND_URL,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
+// Active users tracking
 const usersInRoom = {};
 
 io.on("connection", (socket) => {
   socket.on("join_note", (noteId) => {
     socket.join(noteId);
+
     if (!usersInRoom[noteId]) usersInRoom[noteId] = new Set();
     usersInRoom[noteId].add(socket.id);
+
     io.to(noteId).emit("active_users", usersInRoom[noteId].size);
 
     socket.on("note_update", ({ noteId, content }) => {
@@ -48,5 +64,6 @@ io.on("connection", (socket) => {
   });
 });
 
+//  Start server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
